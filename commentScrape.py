@@ -8,6 +8,11 @@ html_doc = response.read()
 
 soup = BeautifulSoup(html_doc)
 
-listData = soup.find_all(class_ = 'v5-timeline-list timeline-list-t3')
+listData = soup.find('ol', {'class' : 'v5-timeline-list timeline-list-t3'})
 
-print listData
+newData = listData.find_all("li")
+newData.reverse()
+
+for i in newData:
+	temp = i.find(class_ = 'time')
+	print temp.contents
