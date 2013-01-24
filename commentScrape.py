@@ -10,9 +10,15 @@ soup = BeautifulSoup(html_doc)
 
 listData = soup.find('ol', {'class' : 'v5-timeline-list timeline-list-t3'})
 
-newData = listData.find_all("li")
-newData.reverse()
+listData = listData.find_all("li")
+listData.reverse()
 
-for i in newData:
+reqdData = []
+
+for i in listData:
 	temp = i.find(class_ = 'time')
-	print temp.contents
+	if str(temp.contents) == "[]":
+		listData.remove(i)
+		continue
+		print "otha"
+	reqdData.append(i)
