@@ -1,6 +1,6 @@
-import urllib2
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 import nltk
+import re
 
 class Events:
 	def __init__(self, time, highlight, data):
@@ -8,12 +8,11 @@ class Events:
 		self.hl = highlight
 		self.d = data
 
-link = "http://www1.skysports.com/football/live/match/279816/commentary/all"
-
-response = urllib2.urlopen(link)
-html_doc = response.read()
+html_doc = open("commentary.html", "r")
 
 soup = BeautifulSoup(html_doc)
+
+html_doc.close()
 
 listData = soup.find('ol', {'class' : 'v5-timeline-list timeline-list-t3'})
 
@@ -22,9 +21,12 @@ listData.reverse()
 
 matchData = []
 
+p = re.compile('.:.')
+
 for i in listData:
 	time = i.find(class_ = 'time')
-	if str(time.contents) == "[]":
+	print str(i.contents) + '\n'
+	if str(time.contents) == "[]" or p.match(str(time.contents)):
 		listData.remove(i)
 		continue
 	else:
@@ -35,5 +37,10 @@ for i in listData:
 		current = Events(time.contents[0], highlight[0], data[0])
 		matchData.append(current)
 
-for i in matchData:
-	print i.t + " --> " + i.hl + "\n" + i.d + "\n\n"
+# for i in matchData:
+# 	print i.t + " --> " + i.hl + "\n" + i.d + "\n\n"
+# 	text = nltk.word_tokenize(i.d)
+# 	info = nltk.pos_tag(text)
+# 	for j in info:
+# 		if j[1] == "NNP":
+# 			print j[0] + " --> " + j[1]
