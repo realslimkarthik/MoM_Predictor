@@ -1,45 +1,54 @@
 from bs4 import BeautifulSoup
 import nltk
-import re
+import urllib2
+import json
 
-class Events:
-	def __init__(self, time, highlight, data):
-		self.t = time
-		self.hl = highlight
-		self.d = data
+# For future Use
+# class Player:
+# 	def __init__(self, team, player, rating, position):
+# 		self.t = team
+# 		self.p = player
+# 		self.r = rating
+# 		self.pos = position
 
 
-html_doc = open("commentary.html", "r")
+def getTeam(link):
+	response = urllib2.urlopen(link)
+	html_doc = response.read()
 
-soup = BeautifulSoup(html_doc)
+	soup = BeautifulSoup(html_doc)
 
-html_doc.close()
+	listData = soup.find_all('ul', {'class' : 'sq-lst'})
 
-listData = soup.find('ol', {'class' : 'v5-timeline-list timeline-list-t3'})
+	hLineup = soup.find('a', {'href': '#teamlineup-homeTeam'})
+	aLineup = soup.find('a', {'href': '#teamlineup-awayTeam'})
+	home = str(hLineup.contents[0].strip())
+	away = str(aLineup.contents[0].strip())
+	teams[home] = []
+	teams[away] = []
 
-listData = listData.find_all("li")
-listData.reverse()
+	listH = listData[1].find_all('li')
+	listHS = listData[2].find_all('li')
+	listH += listHS
 
-matchData = []
+	for i in listH:
+		sp = i.find_all("span")
+		pl = sp[1].contents
+		teams[home].append(str(pl[0].strip()))
 
-p = re.compile('.:.')
+	listA = listData[4].find_all('li')
+	listAS = listData[5].find_all('li')
+	listA += listHS
 
-for i in listData:
-	time = i.find(class_ = 'time')
-	#print str(i.contents) + '\n'
-	data = i.find('p')
-	data = data.contents
-	words = nltk.word_tokenize(str(data))
-	info = nltk.pos_tag(words)
-	print info
-	print "\n"
-	if str(time.contents) == "[]" or p.match(str(time.contents)):
-		listData.remove(i)
-		continue
-	else:
-		data = i.find('p')
-		data = data.contents
-		highlight = i.attrs["class"]
-		
-		current = Events(time.contents[0], highlight[0], data[0])
-		matchData.append(current)
+	for i in listA:
+		sp = i.find_all("span")
+		pl = sp[1].contents
+		teams[away].append(str(pl[0].strip()))	
+
+
+if __name__=="__main__":
+	link = 'http://www1.skysports.com/football/live/match/279816/teams'
+	teams = {}
+	getTeam(link)
+	with open('teams.json', 'w') as outfile:
+		json.dump(teams, outfile)
