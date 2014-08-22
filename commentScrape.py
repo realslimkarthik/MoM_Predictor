@@ -1,6 +1,13 @@
 import urllib2
 from bs4 import BeautifulSoup, SoupStrainer
 import nltk
+import urllib2
+
+class Events:
+    def __init__(self, time, highlight, data):
+        self.t = time
+        self.hl = highlight
+        self.d = data
 
 # class Player:
 #     def __init__(self, team, player, rating, position):
@@ -9,12 +16,13 @@ import nltk
 #         self.r = rating
 #         self.pos = position
 
-def getTeam(link):
+def getData(link):
     response = urllib2.urlopen(link)
     html_doc = response.read()
+    return BeautifulSoup(html_doc)
 
-    soup = BeautifulSoup(html_doc)
-
+def getTeam(soup):
+    teams = {}
     listData = soup.find_all('ul', {'class' : 'sq-lst'})
 
     hLineup = soup.find('a', {'href': '#teamlineup-homeTeam'})
@@ -41,40 +49,41 @@ def getTeam(link):
         sp = i.find_all("span")
         pl = sp[1].contents
         teams[away].append(str(pl[0].strip()))
+    return teams
+
+def analyzeCommentary(matchData, players):
 
 
-class Events:
-    def __init__(self, time, highlight, data):
-        self.t = time
-        self.hl = highlight
-        self.d = data
 
-link = "http://www1.skysports.com/football/live/match/279816/commentary/all"
+if __name__ == "__main__":
+    link = "http://www1.skysports.com/football/live/match/279816/"
 
-response = urllib2.urlopen(link)
-html_doc = response.read()
+    soup = getData(link + "commentary/all")
 
-soup = BeautifulSoup(html_doc)
+    listData = soup.find('ol', {'class' : 'v5-timeline-list timeline-list-t3'})
+    listData = listData.find_all("li")
+    listData.reverse()
 
-listData = soup.find('ol', {'class' : 'v5-timeline-list timeline-list-t3'})
+    matchData = []
 
-listData = listData.find_all("li")
-listData.reverse()
+    for i in listData:
+        time = i.find(class_ = 'time')
+        if str(time.contents) == "[]":
+            listData.remove(i)
+            continue
+        else:
+            data = i.find('p')
+            data = data.contents
+            highlight = i.attrs["class"]
+            
+            current = Events(time.contents[0], highlight[0], data[0])
+            matchData.append(current)
 
-matchData = []
+    soup = getData(link + "teams")
+    teams = getTeam(soup)
 
-for i in listData:
-    time = i.find(class_ = 'time')
-    if str(time.contents) == "[]":
-        listData.remove(i)
-        continue
-    else:
-        data = i.find('p')
-        data = data.contents
-        highlight = i.attrs["class"]
-        
-        current = Events(time.contents[0], highlight[0], data[0])
-        matchData.append(current)
+    #MoTM = analyzeCommentary(matchData, teams)
 
-for i in matchData:
-    print i.t + " --> " + i.hl + "\n" + i.d + "\n\n"
+    #print MoTM
+    # for i in matchData:
+    #     print i.t + " --> " + i.hl + "\n" + i.d + "\n\n"

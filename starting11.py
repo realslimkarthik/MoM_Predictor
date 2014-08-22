@@ -44,13 +44,13 @@ def getTeam(link):
         sp = i.find_all("span")
         pl = sp[1].contents
         teams[away].append(str(pl[0].strip()))
+    return teams
             
 
 
 if __name__=="__main__":
     #link = 'http://www1.skysports.com/football/live/match/279816/teams'
     link = 'http://www1.skysports.com/football/live/match/313388/teams'
-    teams = {}
-    getTeam(link)
+    teams = getTeam(link)
     with open('teams.json', 'w') as outfile:
         json.dump(teams, outfile)
